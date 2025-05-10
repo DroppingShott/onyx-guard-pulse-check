@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Bell, BarChart2, Home, Wallet, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -12,6 +12,7 @@ interface HeaderProps {
 
 export const Header = ({ walletAddress, disconnectWallet }: HeaderProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   
   useEffect(() => {
@@ -24,6 +25,12 @@ export const Header = ({ walletAddress, disconnectWallet }: HeaderProps) => {
   }, []);
   
   const isActive = (path: string) => location.pathname === path;
+  
+  const handleWalletClick = () => {
+    if (walletAddress) {
+      navigate('/user-assets');
+    }
+  };
   
   return (
     <header 
@@ -69,7 +76,10 @@ export const Header = ({ walletAddress, disconnectWallet }: HeaderProps) => {
           
           {walletAddress && (
             <div className="flex items-center gap-2">
-              <div className="bg-onyx-dark/60 backdrop-blur-sm rounded-full px-3 py-1 text-sm border border-onyx-accent/20 flex items-center gap-2 animate-fade-in">
+              <div 
+                className="bg-onyx-dark/60 backdrop-blur-sm rounded-full px-3 py-1 text-sm border border-onyx-accent/20 flex items-center gap-2 animate-fade-in cursor-pointer hover:bg-onyx-dark/80 transition-colors"
+                onClick={handleWalletClick}
+              >
                 <Wallet size={14} className="text-onyx-accent" />
                 <span className="text-onyx-light">{shortenAddress(walletAddress)}</span>
               </div>

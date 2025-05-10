@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Shield, TrendingUp, Bell, Wallet, Activity, Lock, ArrowRight } from "lucide-react";
@@ -7,7 +6,6 @@ import { Header } from "@/components/layouts/Header";
 import { toast } from "sonner";
 import { shortenAddress, encryptWalletAddress } from "@/utils/address";
 import { submitWalletToContract } from "@/utils/sapphire";
-import { ethers } from "ethers";
 
 interface IndexProps {
   walletAddress: string | null;
@@ -68,32 +66,18 @@ const Index = ({ walletAddress, setWalletAddress, encryptedWallet, setEncryptedW
       
       toast.info("Submitting encrypted wallet to Sapphire Network...");
       
-      // Submit to smart contract (if ethereum is available)
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        
-        const result = await submitWalletToContract(encrypted, signer);
-        
-        if (result.success) {
-          toast.success("Analysis request submitted! Transaction: " + shortenAddress(result.transactionHash || ""));
-          
-          // Navigate to dashboard after a short delay
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 1000);
-        } else {
-          toast.error("Failed to submit analysis request: " + (result.error || "Unknown error"));
-          setIsEncrypting(false);
-        }
-      } else {
-        // Fallback for testing/demo
-        toast.success("Analysis started! Redirecting to dashboard...");
+      // Submit to smart contract with signature request
+      const result = await submitWalletToContract(encrypted, walletAddress);
+      
+      if (result.success) {
+        toast.success("Analysis request submitted! Transaction: " + shortenAddress(result.transactionHash || ""));
         
         // Navigate to dashboard after a short delay
         setTimeout(() => {
           navigate('/dashboard');
         }, 1000);
+      } else {
+        setIsEncrypting(false);
       }
     } catch (error: any) {
       console.error("Error analyzing wallet:", error);
