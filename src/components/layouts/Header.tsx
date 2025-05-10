@@ -1,0 +1,75 @@
+
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Bell, BarChart2, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+export const Header = () => {
+  const location = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  const isActive = (path: string) => location.pathname === path;
+  
+  return (
+    <header 
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-onyx-darker/80 backdrop-blur-md shadow-md' : 'bg-transparent'
+      }`}
+    >
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-10 h-10 flex items-center justify-center">
+            <div className="w-8 h-8 bg-onyx-accent rounded-full flex items-center justify-center animate-pulse-glow">
+              <span className="text-white font-bold text-lg">OG</span>
+            </div>
+          </div>
+          <span className="text-xl font-bold bg-gradient-to-r from-onyx-accent to-onyx-light bg-clip-text text-transparent">
+            Onyx Guard
+          </span>
+        </Link>
+        
+        {location.pathname !== '/' && (
+          <nav className="hidden md:flex items-center gap-1">
+            <Link to="/dashboard">
+              <Button 
+                variant={isActive('/dashboard') ? "secondary" : "ghost"} 
+                className="gap-2"
+              >
+                <BarChart2 size={18} />
+                <span>Portfolio</span>
+              </Button>
+            </Link>
+            <Link to="/alerts">
+              <Button 
+                variant={isActive('/alerts') ? "secondary" : "ghost"} 
+                className="gap-2"
+              >
+                <Bell size={18} />
+                <span>Alerts</span>
+              </Button>
+            </Link>
+          </nav>
+        )}
+        
+        {location.pathname === '/' && (
+          <div className="opacity-0">
+            <Button variant="ghost" size="icon">
+              <Home size={18} />
+            </Button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default Header;
