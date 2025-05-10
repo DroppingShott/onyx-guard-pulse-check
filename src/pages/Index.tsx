@@ -1,22 +1,64 @@
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Shield, TrendingUp, Bell, Wallet, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layouts/Header";
+import { toast } from "sonner";
+import { shortenAddress } from "@/utils/address";
 
 const Index = () => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const navigate = useNavigate();
+  
+  // Check if MetaMask is installed and previously connected
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ 
+            method: 'eth_accounts' 
+          });
+          
+          if (accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+          }
+        } catch (error) {
+          console.error("Error checking connection:", error);
+        }
+      }
+    };
+    
+    checkConnection();
+  }, []);
   
   const handleConnectWallet = async () => {
     setIsConnecting(true);
     
-    // Simulate wallet connection with delay
-    setTimeout(() => {
+    if (window.ethereum) {
+      try {
+        // Request account access
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        setWalletAddress(accounts[0]);
+        
+        setTimeout(() => {
+          setIsConnecting(false);
+          navigate('/dashboard');
+        }, 1000);
+        
+      } catch (error: any) {
+        console.error("Error connecting to MetaMask:", error);
+        toast.error("Failed to connect wallet: " + (error.message || "Unknown error"));
+        setIsConnecting(false);
+      }
+    } else {
+      toast.error("MetaMask is not installed. Please install MetaMask to continue.");
       setIsConnecting(false);
-      navigate('/dashboard');
-    }, 1500);
+    }
   };
 
   const features = [
@@ -39,7 +81,7 @@ const Index = () => {
 
   return (
     <>
-      <Header />
+      <Header walletAddress={walletAddress} />
       <div className="min-h-screen flex flex-col">
         <main className="flex-1 flex flex-col">
           {/* Hero Section */}
@@ -73,6 +115,11 @@ const Index = () => {
                   <>
                     <Wallet className="mr-2 h-5 w-5 animate-spin-slow" />
                     <span>Connecting...</span>
+                  </>
+                ) : walletAddress ? (
+                  <>
+                    <Wallet className="mr-2 h-5 w-5 group-hover:animate-pulse-glow" />
+                    <span>Connected: {shortenAddress(walletAddress)}</span>
                   </>
                 ) : (
                   <>
