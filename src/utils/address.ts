@@ -14,3 +14,24 @@ export function shortenAddress(address: string, startLength: number = 6, endLeng
   
   return `${start}...${end}`;
 }
+
+/**
+ * Simple encryption function for wallet addresses
+ * This is a basic implementation - in production, use a proper encryption library
+ * @param walletAddress The wallet address to encrypt
+ * @returns Encrypted wallet address
+ */
+export function encryptWalletAddress(walletAddress: string): string {
+  if (!walletAddress) return '';
+  
+  // This is a placeholder encryption - in a real app, use actual encryption library
+  // For demonstration purposes, we're using a simple Base64 encoding
+  try {
+    const encoded = btoa(walletAddress);
+    return encoded;
+  } catch (error) {
+    console.error("Error encrypting wallet address:", error);
+    return '';
+  }
+}
+

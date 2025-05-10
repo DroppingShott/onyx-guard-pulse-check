@@ -15,6 +15,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [encryptedWallet, setEncryptedWallet] = useState<string | null>(null);
   
   // Check for existing connection on app load
   useEffect(() => {
@@ -33,6 +34,7 @@ const App = () => {
           const handleAccountsChanged = (accounts: string[]) => {
             if (accounts.length === 0) {
               setWalletAddress(null);
+              setEncryptedWallet(null);
             } else {
               setWalletAddress(accounts[0]);
             }
@@ -59,7 +61,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Index walletAddress={walletAddress} setWalletAddress={setWalletAddress} encryptedWallet={encryptedWallet} setEncryptedWallet={setEncryptedWallet} />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/asset/:symbol" element={<Asset />} />

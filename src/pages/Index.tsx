@@ -1,38 +1,25 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Shield, TrendingUp, Bell, Wallet, Activity } from "lucide-react";
+import { Shield, TrendingUp, Bell, Wallet, Activity, Lock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layouts/Header";
 import { toast } from "sonner";
-import { shortenAddress } from "@/utils/address";
+import { shortenAddress, encryptWalletAddress } from "@/utils/address";
 
-const Index = () => {
+interface IndexProps {
+  walletAddress: string | null;
+  setWalletAddress: (address: string | null) => void;
+  encryptedWallet: string | null;
+  setEncryptedWallet: (encrypted: string | null) => void;
+}
+
+const Index = ({ walletAddress, setWalletAddress, encryptedWallet, setEncryptedWallet }: IndexProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [isEncrypting, setIsEncrypting] = useState(false);
   const navigate = useNavigate();
   
-  // Check if MetaMask is installed and previously connected
-  useEffect(() => {
-    const checkConnection = async () => {
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ 
-            method: 'eth_accounts' 
-          });
-          
-          if (accounts.length > 0) {
-            setWalletAddress(accounts[0]);
-          }
-        } catch (error) {
-          console.error("Error checking connection:", error);
-        }
-      }
-    };
-    
-    checkConnection();
-  }, []);
-  
+  // Handle wallet connection
   const handleConnectWallet = async () => {
     setIsConnecting(true);
     
@@ -45,10 +32,12 @@ const Index = () => {
         
         setWalletAddress(accounts[0]);
         
-        setTimeout(() => {
-          setIsConnecting(false);
-          navigate('/dashboard');
-        }, 1000);
+        // Encrypt the wallet address
+        const encrypted = encryptWalletAddress(accounts[0]);
+        setEncryptedWallet(encrypted);
+        
+        toast.success("Wallet connected successfully!");
+        setIsConnecting(false);
         
       } catch (error: any) {
         console.error("Error connecting to MetaMask:", error);
@@ -58,6 +47,34 @@ const Index = () => {
     } else {
       toast.error("MetaMask is not installed. Please install MetaMask to continue.");
       setIsConnecting(false);
+    }
+  };
+  
+  // Handle encryption and analysis
+  const handleAnalyze = () => {
+    if (!walletAddress) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+    
+    setIsEncrypting(true);
+    
+    try {
+      // In a real app, we would submit the encrypted wallet to the contract here
+      // For demo, we're just simulating the process with a delay
+      setTimeout(() => {
+        setIsEncrypting(false);
+        toast.success("Analysis started! Redirecting to dashboard...");
+        
+        // Navigate to dashboard after a short delay
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
+      }, 1500);
+    } catch (error: any) {
+      console.error("Error analyzing wallet:", error);
+      toast.error("Failed to analyze wallet: " + (error.message || "Unknown error"));
+      setIsEncrypting(false);
     }
   };
 
@@ -104,31 +121,56 @@ const Index = () => {
               Advanced crypto risk monitoring system that protects your assets from threats and vulnerabilities
             </p>
             
-            <div className="animate-slide-up animate-delay-200">
-              <Button 
-                size="lg" 
-                onClick={handleConnectWallet}
-                disabled={isConnecting}
-                className="button-glow bg-gradient-to-r from-onyx-accent to-onyx-accent-dark hover:from-onyx-accent-dark hover:to-onyx-accent transition-all duration-300 shadow-lg group relative overflow-hidden"
-              >
-                {isConnecting ? (
-                  <>
-                    <Wallet className="mr-2 h-5 w-5 animate-spin-slow" />
-                    <span>Connecting...</span>
-                  </>
-                ) : walletAddress ? (
-                  <>
-                    <Wallet className="mr-2 h-5 w-5 group-hover:animate-pulse-glow" />
-                    <span>Connected: {shortenAddress(walletAddress)}</span>
-                  </>
-                ) : (
-                  <>
-                    <Wallet className="mr-2 h-5 w-5 group-hover:animate-pulse-glow" />
-                    <span>Connect Wallet</span>
-                  </>
-                )}
-                <span className="absolute inset-0 bg-gradient-to-r from-onyx-accent/20 to-transparent w-[200%] -translate-x-full group-hover:translate-x-0 transition-transform duration-700"></span>
-              </Button>
+            <div className="flex flex-col md:flex-row gap-4 animate-slide-up animate-delay-200">
+              {!walletAddress ? (
+                <Button 
+                  size="lg" 
+                  onClick={handleConnectWallet}
+                  disabled={isConnecting}
+                  className="button-glow bg-gradient-to-r from-onyx-accent to-onyx-accent-dark hover:from-onyx-accent-dark hover:to-onyx-accent transition-all duration-300 shadow-lg group relative overflow-hidden"
+                >
+                  {isConnecting ? (
+                    <>
+                      <Wallet className="mr-2 h-5 w-5 animate-spin-slow" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Wallet className="mr-2 h-5 w-5 group-hover:animate-pulse-glow" />
+                      <span>Connect Wallet</span>
+                    </>
+                  )}
+                  <span className="absolute inset-0 bg-gradient-to-r from-onyx-accent/20 to-transparent w-[200%] -translate-x-full group-hover:translate-x-0 transition-transform duration-700"></span>
+                </Button>
+              ) : (
+                <>
+                  <div className="flex items-center justify-center bg-onyx-dark/60 backdrop-blur-sm rounded-full px-5 py-3 border border-onyx-accent/20 gap-2">
+                    <Wallet className="h-5 w-5 text-onyx-accent" />
+                    <span className="text-onyx-light">{shortenAddress(walletAddress)}</span>
+                    <Lock className="h-4 w-4 text-green-500 ml-1" />
+                  </div>
+
+                  <Button 
+                    size="lg" 
+                    onClick={handleAnalyze}
+                    disabled={isEncrypting}
+                    className="button-glow bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg group relative overflow-hidden"
+                  >
+                    {isEncrypting ? (
+                      <>
+                        <Activity className="mr-2 h-5 w-5 animate-spin-slow" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRight className="mr-2 h-5 w-5 group-hover:animate-pulse-glow" />
+                        <span>Analyze Wallet</span>
+                      </>
+                    )}
+                    <span className="absolute inset-0 bg-gradient-to-r from-green-600/20 to-transparent w-[200%] -translate-x-full group-hover:translate-x-0 transition-transform duration-700"></span>
+                  </Button>
+                </>
+              )}
             </div>
           </section>
           
