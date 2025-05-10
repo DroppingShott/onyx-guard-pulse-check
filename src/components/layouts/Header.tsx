@@ -1,15 +1,16 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Bell, BarChart2, Home, Wallet } from 'lucide-react';
+import { Bell, BarChart2, Home, Wallet, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { shortenAddress } from '@/utils/address';
 
 interface HeaderProps {
   walletAddress?: string | null;
+  disconnectWallet?: () => void;
 }
 
-export const Header = ({ walletAddress }: HeaderProps) => {
+export const Header = ({ walletAddress, disconnectWallet }: HeaderProps) => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   
@@ -67,9 +68,22 @@ export const Header = ({ walletAddress }: HeaderProps) => {
           )}
           
           {walletAddress && (
-            <div className="bg-onyx-dark/60 backdrop-blur-sm rounded-full px-3 py-1 text-sm border border-onyx-accent/20 flex items-center gap-2 animate-fade-in">
-              <Wallet size={14} className="text-onyx-accent" />
-              <span className="text-onyx-light">{shortenAddress(walletAddress)}</span>
+            <div className="flex items-center gap-2">
+              <div className="bg-onyx-dark/60 backdrop-blur-sm rounded-full px-3 py-1 text-sm border border-onyx-accent/20 flex items-center gap-2 animate-fade-in">
+                <Wallet size={14} className="text-onyx-accent" />
+                <span className="text-onyx-light">{shortenAddress(walletAddress)}</span>
+              </div>
+              
+              {disconnectWallet && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={disconnectWallet}
+                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                >
+                  <LogOut size={14} />
+                </Button>
+              )}
             </div>
           )}
         </div>

@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layouts/Header";
 import { toast } from "sonner";
 import { shortenAddress, encryptWalletAddress } from "@/utils/address";
+import { submitWalletToContract } from "@/utils/sapphire";
+import { ethers } from "ethers";
 
 interface IndexProps {
   walletAddress: string | null;
@@ -51,7 +53,7 @@ const Index = ({ walletAddress, setWalletAddress, encryptedWallet, setEncryptedW
   };
   
   // Handle encryption and analysis
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!walletAddress) {
       toast.error("Please connect your wallet first");
       return;
@@ -60,17 +62,39 @@ const Index = ({ walletAddress, setWalletAddress, encryptedWallet, setEncryptedW
     setIsEncrypting(true);
     
     try {
-      // In a real app, we would submit the encrypted wallet to the contract here
-      // For demo, we're just simulating the process with a delay
-      setTimeout(() => {
-        setIsEncrypting(false);
+      // Encrypt the wallet address
+      const encrypted = encryptWalletAddress(walletAddress);
+      setEncryptedWallet(encrypted);
+      
+      toast.info("Submitting encrypted wallet to Sapphire Network...");
+      
+      // Submit to smart contract (if ethereum is available)
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        
+        const result = await submitWalletToContract(encrypted, signer);
+        
+        if (result.success) {
+          toast.success("Analysis request submitted! Transaction: " + shortenAddress(result.transactionHash || ""));
+          
+          // Navigate to dashboard after a short delay
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1000);
+        } else {
+          toast.error("Failed to submit analysis request: " + (result.error || "Unknown error"));
+          setIsEncrypting(false);
+        }
+      } else {
+        // Fallback for testing/demo
         toast.success("Analysis started! Redirecting to dashboard...");
         
         // Navigate to dashboard after a short delay
         setTimeout(() => {
           navigate('/dashboard');
         }, 1000);
-      }, 1500);
+      }
     } catch (error: any) {
       console.error("Error analyzing wallet:", error);
       toast.error("Failed to analyze wallet: " + (error.message || "Unknown error"));

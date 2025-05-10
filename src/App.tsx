@@ -54,6 +54,12 @@ const App = () => {
     checkConnection();
   }, []);
 
+  // Disconnect wallet function
+  const disconnectWallet = () => {
+    setWalletAddress(null);
+    setEncryptedWallet(null);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -62,9 +68,9 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index walletAddress={walletAddress} setWalletAddress={setWalletAddress} encryptedWallet={encryptedWallet} setEncryptedWallet={setEncryptedWallet} />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/asset/:symbol" element={<Asset />} />
+            <Route path="/dashboard" element={<Dashboard walletAddress={walletAddress} disconnectWallet={disconnectWallet} />} />
+            <Route path="/alerts" element={<Alerts walletAddress={walletAddress} disconnectWallet={disconnectWallet} />} />
+            <Route path="/asset/:symbol" element={<Asset walletAddress={walletAddress} disconnectWallet={disconnectWallet} />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

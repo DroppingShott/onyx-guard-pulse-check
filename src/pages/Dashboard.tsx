@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,7 +21,12 @@ import {
   Cell
 } from "recharts";
 
-const Dashboard = () => {
+interface DashboardProps {
+  walletAddress?: string | null;
+  disconnectWallet?: () => void;
+}
+
+const Dashboard = ({ walletAddress, disconnectWallet }: DashboardProps) => {
   const [portfolioFilter, setPortfolioFilter] = useState("all");
   const [sortBy, setSortBy] = useState("balance");
   const navigate = useNavigate();
@@ -99,7 +103,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <Header />
+      <Header walletAddress={walletAddress} disconnectWallet={disconnectWallet} />
       <div className="min-h-screen pt-20 pb-10 px-4">
         <main className="container mx-auto">
           <h1 className="text-3xl font-bold mb-6 animate-slide-up">
